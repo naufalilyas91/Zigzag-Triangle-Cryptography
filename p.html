@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zigzag + Triangle Cryptography</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: #ffffff;
+        }
+        .container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+            max-width: 600px;
+            width: 100%;
+            backdrop-filter: blur(10px);
+        }
+        input, textarea, button, select {
+            margin: 10px 0;
+            padding: 10px;
+            width: 100%;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        input, textarea, select {
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #333;
+        }
+        button {
+            background-color: #6a11cb;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2575fc;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        label {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: block;
+        }
+        textarea {
+            resize: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Zigzag + Triangle Cryptography</h1>
+        <label for="operation">Operation:</label>
+        <select id="operation">
+            <option value="encrypt">Encrypt</option>
+            <option value="decrypt">Decrypt</option>
+        </select>
+
+        <label for="textInput">Input Text:</label>
+        <textarea id="textInput" rows="5" placeholder="Enter your text here..."></textarea>
+
+        <label for="keyInput">Zigzag Key (Rows):</label>
+        <input type="number" id="keyInput" min="1" value="3">
+
+        <button onclick="run()">Run</button>
+
+        <h2>Result:</h2>
+        <textarea id="resultOutput" rows="5" readonly></textarea>
+    </div>
+
+    <script>
+        function zigzagEncrypt(text, key) {
+            if (key <= 1) return text;
+
+            let zigzag = Array.from({ length: key }, () => "");
+            let row = 0, direction = 1;
+
+            for (let char of text) {
+                zigzag[row] += char;
+                if (row === 0) direction = 1;
+                else if (row === key - 1) direction = -1;
+                row += direction;
+            }
+            return zigzag.join("");
+        }
+
+        function zigzagDecrypt(cipher, key) {
+            if (key <= 1) return cipher;
+
+            let zigzag = Array.from({ length: key }, () => []);
+            let row = 0, direction = 1, pos = 0;
+
+            for (let i = 0; i < cipher.length; i++) {
+                zigzag[row].push(i);
+                if (row === 0) direction = 1;
+                else if (row === key - 1) direction = -1;
+                row += direction;
+            }
+
+            let flatIndexes = zigzag.flat();
+            let text = Array(cipher.length).fill("");
+
+            for (let i = 0; i < cipher.length; i++) {
+                text[flatIndexes[i]] = cipher[i];
+            }
+            return text.join("");
+        }
+
+        function triangleEncrypt(text) {
+            let size = Math.ceil((-1 + Math.sqrt(1 + 8 * text.length)) / 2);
+            let encrypted = "";
+            let idx = 0;
+
+            for (let i = 1; i <= size; i++) {
+                encrypted += text.slice(idx, idx + i);
+                idx += i;
+            }
+            return encrypted;
+        }
+
+        function triangleDecrypt(cipher) {
+            let size = Math.ceil((-1 + Math.sqrt(1 + 8 * cipher.length)) / 2);
+            let text = Array(cipher.length).fill("");
+            let idx = 0, counter = 0;
+
+            for (let i = 1; i <= size; i++) {
+                for (let j = 0; j < i; j++) {
+                    if (idx < cipher.length) {
+                        text[counter] = cipher[idx];
+                        idx++;
+                        counter++;
+                    }
+                }
+            }
+            return text.join("");
+        }
+
+        function run() {
+            let operation = document.getElementById("operation").value;
+            let inputText = document.getElementById("textInput").value;
+            let key = parseInt(document.getElementById("keyInput").value);
+            let result = "";
+
+            if (operation === "encrypt") {
+                let zigzagEncrypted = zigzagEncrypt(inputText, key);
+                result = triangleEncrypt(zigzagEncrypted);
+            } else if (operation === "decrypt") {
+                let triangleDecrypted = triangleDecrypt(inputText);
+                result = zigzagDecrypt(triangleDecrypted, key);
+            }
+
+            document.getElementById("resultOutput").value = result;
+        }
+    </script>
+</body>
+</html>
